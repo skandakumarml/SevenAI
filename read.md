@@ -1,0 +1,1 @@
+To run the bash file in mac - ./start_seven_ai.sh  

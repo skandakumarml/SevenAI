@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seven AI</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Side panel -->
+    <div class="side-panel">
+      <div class="logo-container">
+        <div class="logo">Seven</div>
+        <div class="model-badge">
+          <div class="pulse-dot"></div>
+          <span>AI Assistant</span>
+        </div>
+      </div>
+      
+      <button id="new-chat-btn" class="new-chat-btn">
+        <span class="material-icons">add</span>
+        New conversation
+      </button>
+      
+      <div class="conversations">
+        <div class="section-title">Conversations</div>
+        <!-- Conversation history will be populated here -->
+        <div id="conversation-list"></div>
+      </div>
+      
+      <div class="bottom-section">
+        <button id="settings-btn" class="settings-btn">
+          <span class="material-icons">settings</span>
+          Settings
+        </button>
+      </div>
+    </div>
+    
+    <!-- Main chat area -->
+    <div class="chat-container">
+      <div class="chat-header">
+        <button id="menu-toggle" class="menu-toggle">
+          <span class="material-icons">menu</span>
+        </button>
+        <div class="current-model">
+          <div class="model-indicator">
+            <div class="pulse-dot"></div>
+            <span>Seven AI</span>
+          </div>
+        </div>
+        <button id="clear-chat" class="clear-chat">
+          <span class="material-icons">refresh</span>
+        </button>
+      </div>
+      
+      <div id="messages-container" class="messages-container">
+        <!-- Messages will be appended here -->
+      </div>
+      
+      <div class="input-container">
+        <div class="input-wrapper">
+          <button id="attach-btn" class="attach-btn">
+            <span class="material-icons">attach_file</span>
+          </button>
+          
+          <input 
+            type="text" 
+            id="message-input" 
+            placeholder="Message Seven AI..." 
+            autocomplete="off"
+          >
+          
+          <div class="input-buttons">
+            <button id="voice-btn" class="voice-btn">
+              <span class="material-icons">mic</span>
+            </button>
+            <button id="send-btn" class="send-btn" disabled>
+              <span class="material-icons">send</span>
+            </button>
+          </div>
+        </div>
+        
+        <div class="footer-text">
+          <p>Seven AI • Make your own AI</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Modal -->
+  <div id="upload-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Upload Files</h3>
+        <button id="close-upload-modal" class="close-modal">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="upload-area" id="drop-area">
+          <input type="file" id="file-input" multiple hidden>
+          <div class="upload-icon">
+            <span class="material-icons">cloud_upload</span>
+          </div>
+          <p>Drag and drop files here, or <span class="browse-files">browse</span></p>
+          <p class="file-support">Supports documents, images, and audio files</p>
+        </div>
+        <div id="file-list" class="file-list"></div>
+      </div>
+      <div class="modal-footer">
+        <button id="cancel-upload" class="cancel-btn">Cancel</button>
+        <button id="confirm-upload" class="confirm-btn">Upload</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Settings</h3>
+        <button id="close-settings-modal" class="close-modal">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="settings-section">
+          <h4>Appearance</h4>
+          <div class="setting-item">
+            <span>Dark Mode</span>
+            <div class="toggle-switch">
+              <input type="checkbox" id="dark-mode-toggle" checked>
+              <label for="dark-mode-toggle"></label>
+            </div>
+          </div>
+          
+          <div class="setting-item">
+            <span>Haptic Feedback</span>
+            <div class="toggle-switch">
+              <input type="checkbox" id="haptic-toggle" checked>
+              <label for="haptic-toggle"></label>
+            </div>
+          </div>
+        </div>
+        
+        <div class="settings-section">
+          <h4>Model Settings</h4>
+          <div class="setting-item">
+            <span>Response Length</span>
+            <select id="response-length" class="settings-select">
+              <option value="short">Short</option>
+              <option value="medium" selected>Medium</option>
+              <option value="long">Long</option>
+            </select>
+          </div>
+          
+          <div class="setting-item">
+            <span>Temperature</span>
+            <div class="slider-container">
+              <input type="range" min="0" max="100" value="70" class="slider" id="temperature-slider">
+              <div class="slider-value" id="temperature-value">0.7</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="reset-settings" class="cancel-btn">Reset</button>
+        <button id="save-settings" class="confirm-btn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+  <script src="script.js"></script>
+</body>
+</html>
