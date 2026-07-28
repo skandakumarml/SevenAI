@@ -992,4 +992,59 @@
     transform: scale(0.95);
     opacity: 0.9;
   }
+
+  /* Web Search Toggle Button & Badges */
+  .web-search-toggle {
+    position: absolute;
+    left: 50px;
+    background: transparent;
+    border: none;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+
+  .web-search-toggle:hover {
+    background-color: var(--glass-light);
+    color: var(--text-secondary);
+  }
+
+  .web-search-toggle.active {
+    color: var(--accent);
+    background-color: rgba(72, 112, 255, 0.15);
+    box-shadow: 0 0 10px rgba(72, 112, 255, 0.25);
+  }
+
+  #message-input {
+    padding-left: 95px !important;
+  }
+
+  .search-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: rgba(72, 112, 255, 0.12);
+    border: 1px solid rgba(72, 112, 255, 0.25);
+    color: #7b9cff;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    margin-bottom: 8px;
+  }
+
+  body.light-mode .search-badge {
+    background-color: rgba(72, 112, 255, 0.1);
+    color: #2b5aff;
+  }
+
+  .search-badge-icon {
+    font-size: 14px !important;
+  }
+
   

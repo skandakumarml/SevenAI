@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const sidePanel = document.querySelector('.side-panel');
     const conversationList = document.getElementById('conversation-list');
     const attachBtn = document.getElementById('attach-btn');
+    const webSearchToggle = document.getElementById('web-search-toggle');
     const voiceBtn = document.getElementById('voice-btn');
     const settingsBtn = document.getElementById('settings-btn');
     
@@ -41,12 +42,13 @@ document.addEventListener('DOMContentLoaded', function() {
     let conversations = [];
     let currentConversationId = generateId();
     let isWaitingForResponse = false;
+    let webSearchEnabled = true;
     
     // Initialize with one empty conversation
     addNewConversation("New conversation");
     
     // Initial welcome message
-    displayAIMessage("Hello! I'm Seven AI powered by Llama 3.2. How can I assist you today?");
+    displayAIMessage("Hello! I'm Seven AI powered by Llama 3.2 with Live Web Search capability. How can I assist you today?");
     
     // Check for saved theme preference
     if (localStorage.getItem('darkMode') === 'light') {
@@ -82,6 +84,24 @@ document.addEventListener('DOMContentLoaded', function() {
       addHapticFeedback(this);
     });
     
+    // Web search toggle button functionality
+    if (webSearchToggle) {
+      webSearchToggle.classList.add('active');
+      webSearchToggle.setAttribute('title', 'Live Web Search Enabled (Click to disable)');
+      
+      webSearchToggle.addEventListener('click', function() {
+        webSearchEnabled = !webSearchEnabled;
+        if (webSearchEnabled) {
+          this.classList.add('active');
+          this.setAttribute('title', 'Live Web Search Enabled (Click to disable)');
+        } else {
+          this.classList.remove('active');
+          this.setAttribute('title', 'Live Web Search Disabled (Click to enable)');
+        }
+        addHapticFeedback(this);
+      });
+    }
+
     // Make menu toggle work on all screen sizes
     menuToggle.addEventListener('click', function() {
       sidePanel.classList.toggle('open');
@@ -178,7 +198,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     confirmUpload.addEventListener('click', function() {
-      // Simulate upload process
       if (fileList.children.length > 0) {
         closeModal(uploadModal);
         displayAIMessage("I've received your files. How would you like me to process them?");
@@ -211,7 +230,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     saveSettings.addEventListener('click', function() {
-      // Save settings (in a real app, this would persist settings)
       closeModal(settingsModal);
       addHapticFeedback(this);
       displayAIMessage("Your settings have been updated.");
@@ -257,7 +275,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // Show typing indicator
       showTypingIndicator();
       
-      // Send to Llama 3.2 1B model via our backend API
+      // Send to Llama 3.2 model via backend API
       fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -265,7 +283,8 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         body: JSON.stringify({
           message: userMessage,
-          conversationId: currentConversationId
+          conversationId: currentConversationId,
+          enableSearch: webSearchEnabled
         }),
       })
       .then(response => {
@@ -276,7 +295,7 @@ document.addEventListener('DOMContentLoaded', function() {
       })
       .then(data => {
         removeTypingIndicator();
-        displayAIMessage(data.response);
+        displayAIMessage(data.response, data.searchPerformed, data.searchQuery);
         isWaitingForResponse = false;
       })
       .catch(error => {
@@ -298,7 +317,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       messageElement.innerHTML = `
         <div class="message-content">
-          <div class="message-text">${text}</div>
+          <div class="message-text">${escapeHtml(text)}</div>
           <div class="message-timestamp">${time}</div>
         </div>
       `;
@@ -307,7 +326,7 @@ document.addEventListener('DOMContentLoaded', function() {
       scrollToBottom();
     }
     
-    function displayAIMessage(text) {
+    function displayAIMessage(text, searchPerformed = false, searchQuery = null) {
       const messageElement = document.createElement('div');
       messageElement.className = 'message ai';
       
@@ -315,10 +334,21 @@ document.addEventListener('DOMContentLoaded', function() {
         hour: '2-digit',
         minute: '2-digit'
       });
+
+      let searchBadgeHtml = '';
+      if (searchPerformed && searchQuery) {
+        searchBadgeHtml = `
+          <div class="search-badge">
+            <span class="material-icons search-badge-icon">search</span>
+            <span>Searched web for <em>"${escapeHtml(searchQuery)}"</em></span>
+          </div>
+        `;
+      }
       
       messageElement.innerHTML = `
         <div class="message-content">
-          <div class="message-text">${text}</div>
+          ${searchBadgeHtml}
+          <div class="message-text">${formatMessageText(text)}</div>
           <div class="message-timestamp">${time}</div>
         </div>
       `;
@@ -332,9 +362,25 @@ document.addEventListener('DOMContentLoaded', function() {
         currentConversation.messages.push({
           sender: 'ai',
           text: text,
+          searchPerformed: searchPerformed,
+          searchQuery: searchQuery,
           timestamp: new Date()
         });
       }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    function formatMessageText(text) {
+      if (!text) return '';
+      // Basic formatting for line breaks & bolding
+      let formatted = escapeHtml(text);
+      formatted = formatted.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+      formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      return formatted;
     }
     
     function showTypingIndicator() {
@@ -359,26 +405,10 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
     
-    function getAIResponse(userMessage) {
-      // This function is now replaced with the fetch API call in sendMessage()
-      // Keeping this as a fallback for offline testing
-      const responses = [
-        "I've analyzed your query and can provide insights based on my training data. The key concepts to understand here are...",
-        "That's an interesting question about artificial intelligence. From my analysis, there are several perspectives to consider...",
-        "Based on current research in this area, I can tell you that most experts believe the following approaches are most promising...",
-        "I've processed your request and can offer some detailed thoughts. The core principles at work here involve...",
-        "Looking at this from a machine learning perspective, we should consider these key factors that influence how systems like me operate..."
-      ];
-      
-      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-      displayAIMessage(randomResponse);
-    }
-    
     function clearCurrentChat() {
       messagesContainer.innerHTML = '';
-      displayAIMessage("Hello! I'm Seven AI powered by Llama 3.2. How can I assist you today?");
+      displayAIMessage("Hello! I'm Seven AI powered by Llama 3.2 with Live Web Search capability. How can I assist you today?");
       
-      // Clear messages for current conversation
       const currentConversation = findConversationById(currentConversationId);
       if (currentConversation) {
         currentConversation.messages = [];
@@ -390,12 +420,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function addHapticFeedback(element) {
-      // If device supports vibration API and haptic is enabled
       if ('vibrate' in navigator && hapticToggle.checked) {
         navigator.vibrate(20);
       }
       
-      // Visual feedback
       element.classList.add('active-feedback');
       setTimeout(() => {
         element.classList.remove('active-feedback');
@@ -429,10 +457,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const fileItem = document.createElement('div');
       fileItem.className = 'file-item';
       
-      // Format file size
       const fileSize = formatFileSize(file.size);
       
-      // Get appropriate icon based on file type
       let fileIcon = 'description';
       if (file.type.startsWith('image/')) {
         fileIcon = 'image';
@@ -446,7 +472,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="file-info">
           <span class="material-icons">${fileIcon}</span>
           <div>
-            <div class="file-name">${file.name}</div>
+            <div class="file-name">${escapeHtml(file.name)}</div>
             <div class="file-size">${fileSize}</div>
           </div>
         </div>
@@ -510,7 +536,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       conversationItem.innerHTML = `
         <span class="material-icons">chat</span>
-        <div class="conversation-title">${conversation.title}</div>
+        <div class="conversation-title">${escapeHtml(conversation.title)}</div>
       `;
       
       conversationItem.addEventListener('click', function() {
@@ -524,7 +550,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateConversationsList() {
       conversationList.innerHTML = '';
       
-      // Sort conversations with most recent first
       const sortedConversations = [...conversations].sort((a, b) => {
         return new Date(b.timestamp) - new Date(a.timestamp);
       });
@@ -538,7 +563,6 @@ document.addEventListener('DOMContentLoaded', function() {
       const conversation = findConversationById(conversationId);
       if (!conversation) return;
       
-      // Update UI to show this is the active conversation
       document.querySelectorAll('.conversation-item').forEach(item => {
         item.classList.remove('active');
       });
@@ -548,28 +572,21 @@ document.addEventListener('DOMContentLoaded', function() {
         activeItem.classList.add('active');
       }
       
-      // Set as current conversation
       currentConversationId = conversationId;
-      
-      // Clear messages container
       messagesContainer.innerHTML = '';
       
-      // Display conversation messages
       if (conversation.messages.length === 0) {
-        // Show welcome message for empty conversations
-        displayAIMessage("Hello! I'm Seven AI powered by Llama 3.2. How can I assist you today?");
+        displayAIMessage("Hello! I'm Seven AI powered by Llama 3.2 with Live Web Search capability. How can I assist you today?");
       } else {
-        // Display all messages in the conversation
         conversation.messages.forEach(message => {
           if (message.sender === 'user') {
             displayUserMessage(message.text);
           } else {
-            displayAIMessage(message.text);
+            displayAIMessage(message.text, message.searchPerformed, message.searchQuery);
           }
         });
       }
       
-      // Close the sidebar on mobile after selecting a conversation
       if (window.innerWidth < 768) {
         sidePanel.classList.remove('open');
         overlay.classList.remove('active');
@@ -581,17 +598,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function startNewConversation() {
-      // Create a new conversation
       const newId = addNewConversation("New conversation");
       currentConversationId = newId;
       
-      // Update the UI
       updateConversationsList();
-      
-      // Load the new conversation
       loadConversation(newId);
       
-      // Close the sidebar on mobile
       if (window.innerWidth < 768) {
         sidePanel.classList.remove('open');
         overlay.classList.remove('active');
